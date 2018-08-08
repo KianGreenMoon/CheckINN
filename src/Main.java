@@ -17,7 +17,7 @@ public class Main {
             if (INN.equals("") || INN.equals("end") || INN == null) break;
 
             Scanner kpp = new Scanner(System.in);
-            System.out.println("Введите Ваш КПП или оставтье сроку пустой: ");
+            System.out.println("Введите Ваш КПП или оставтье строку пустой: ");
             KPP = kpp.nextLine();
             System.out.println(KPP.replaceAll("[\\-\\s]", "").toUpperCase());
 
