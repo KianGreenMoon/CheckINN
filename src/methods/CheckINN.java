@@ -15,6 +15,18 @@ public class CheckINN {
     private String kpp;
     private String date;
 
+    //Подключение к сервису
+    private static FNSNDSCAWS2 service = new FNSNDSCAWS2();
+    private static FNSNDSCAWS2Port port = service.getFNSNDSCAWS2Port();
+    //Формулирование запроса и ответа
+    private static NdsRequest2 ndsRequest = new NdsRequest2();
+    private NdsRequest2.NP np_in = new NdsRequest2.NP();                //Ввод данных
+    private NdsResponse2 ndsResponse;
+    private NdsResponse2.NP np_out;                                     //Вывод данных
+
+    private static int count = 0;
+    private int id;
+
     //Конструктор
     public CheckINN(String inn, String kpp)
     {
@@ -22,7 +34,12 @@ public class CheckINN {
         this.kpp = editFormat(kpp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
         this.date = dateFormat.format(new Date());
-        sendRequest(this.inn, this.kpp, this.date);
+
+        this.id = count;
+
+        setRequest(this.inn, this.kpp, this.date);
+        sendRequest();
+        count++;
     }
 
 
@@ -31,9 +48,21 @@ public class CheckINN {
     {
         return this.response;
     }
+    private NdsResponse2 getNdsResponse()
+    {
+       return ndsResponse;
+    }
+    private FNSNDSCAWS2Port getConnect()
+    {
+        return this.port;
+    }
     private String editFormat(String format)
     {
         return format.replaceAll("[\\-\\s]", "").toUpperCase();
+    }
+    private int getId()
+    {
+        return this.id;
     }
 
     //Мутаторы
@@ -41,20 +70,23 @@ public class CheckINN {
     {
         this.response = state;
     }
-    private void sendRequest(String inn, String kpp, String date){
+    private void setRequest(String inn, String kpp, String date)
+    {
+        np_in.setINN(inn);
+        np_in.setKPP(kpp);
+        np_in.setDT(date);
+        ndsRequest.getNP().add(np_in);
+    }
+    private void setNdsResponse()
+    {
+        np_out = getNdsResponse().getNP().get(getId());
+        setResponse(Byte.parseByte(this.np_out.getState()));
+    }
+    private void sendRequest(){
         //Запрос:
-        FNSNDSCAWS2 service = new FNSNDSCAWS2();
-        FNSNDSCAWS2Port port = service.getFNSNDSCAWS2Port();
-        NdsRequest2.NP request2NP = new NdsRequest2.NP();
-        request2NP.setINN(inn);
-        request2NP.setKPP(kpp);
-        request2NP.setDT(date);
-        NdsRequest2 request2 = new NdsRequest2();
-        request2.getNP().add(request2NP);
-        NdsResponse2 response2 = port.ndsRequest2(request2);
-        NdsResponse2.NP np_out = response2.getNP().get(0);
+        ndsResponse = getConnect().ndsRequest2(ndsRequest);
 
         //Сохранить ответ:
-        setResponse(Byte.parseByte(np_out.getState()));
+        setNdsResponse();
     }
 }
