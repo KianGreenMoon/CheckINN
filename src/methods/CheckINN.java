@@ -38,7 +38,9 @@ public class CheckINN {
         this.id = count;
 
         setRequest(this.inn, this.kpp, this.date);
-        sendRequest();
+        sendRequest();                                       //Запрос
+        setNdsResponse();                                    //Получить ответ от сервера
+        setResponse(Byte.parseByte(this.np_out.getState())); //Сохранить ответ
         count++;
     }
 
@@ -80,13 +82,8 @@ public class CheckINN {
     private void setNdsResponse()
     {
         np_out = getNdsResponse().getNP().get(getId());
-        setResponse(Byte.parseByte(this.np_out.getState()));
     }
     private void sendRequest(){
-        //Запрос:
         ndsResponse = getConnect().ndsRequest2(ndsRequest);
-
-        //Сохранить ответ:
-        setNdsResponse();
     }
 }
